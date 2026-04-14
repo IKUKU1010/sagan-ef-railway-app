@@ -15,6 +15,7 @@ def create_app():
     seed_sample_data()
     return app
 
+
 def seed_sample_data():
     conn = get_db()
     if conn.execute("SELECT COUNT(*) FROM clients").fetchone()[0] > 0:
@@ -28,6 +29,7 @@ def seed_sample_data():
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
         ('John','Jane','1975-03-15','1978-07-22','4521','8834',
          15000,12000,3000,1000,'123 Peachtree St, Atlanta GA',450000))
+    
     cid = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
 
     accounts = [
@@ -45,6 +47,7 @@ def seed_sample_data():
         (cid,'joint','Private Reserve','Pinnacle','7777',0,0,0,1,0,0,0,86785,None),
         (cid,'joint','Family Trust','','8888',0,1,0,0,0,0,0,0,None),
     ]
+
     conn.executemany("""INSERT INTO accounts
         (client_id,owner,account_type,institution,acct_last4,
          is_retirement,is_trust,is_fica,is_private_reserve,is_investment,
@@ -57,12 +60,21 @@ def seed_sample_data():
         (cid,'Escalade',31627.52,None),(cid,'PNC',14028.00,None),
         (cid,'Health',1447.00,None),
     ]
-    conn.executemany("INSERT INTO liabilities (client_id,name,balance,interest_rate) VALUES (?,?,?,?)", liabilities)
+
+    conn.executemany(
+        "INSERT INTO liabilities (client_id,name,balance,interest_rate) VALUES (?,?,?,?)",
+        liabilities
+    )
+
     conn.commit()
     conn.close()
 
+
+# 🔥 THIS LINE IS CRITICAL FOR GUNICORN
+app = create_app()
+
+
+# 👇 ONLY for local development (not used by Railway)
 if __name__ == '__main__':
-    app = create_app()
-    app.run(host="0.0.0.0", port=5000, debug=True)
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
