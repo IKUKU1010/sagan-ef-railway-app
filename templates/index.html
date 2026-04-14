@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Clients — EF Portal{% endblock %}
+{% block content %}
+<div class="flex-between mb-2">
+  <div>
+    <h1>Client Roster</h1>
+    <p class="subtitle">{{ clients|length }} client{{ 's' if clients|length != 1 }} · Click to view details or generate a report</p>
+  </div>
+  <a href="{{ url_for('clients.new_client') }}" class="btn btn-primary">+ Add Client</a>
+</div>
+
+{% if not clients %}
+<div class="card text-center" style="padding:3rem">
+  <div style="font-size:2.5rem;margin-bottom:.75rem">📋</div>
+  <h2>No clients yet</h2>
+  <p class="subtitle">Add your first client to get started</p>
+  <a href="{{ url_for('clients.new_client') }}" class="btn btn-primary mt-2">Add Client</a>
+</div>
+{% else %}
+<div style="display:grid;gap:.75rem">
+{% for client in clients %}
+<a href="{{ url_for('clients.client_detail', client_id=client.id) }}" class="client-card" style="text-decoration:none">
+  <div class="client-avatar">{{ client.name_1[0] }}{% if client.name_2 %}{{ client.name_2[0] }}{% endif %}</div>
+  <div class="client-info">
+    <div class="client-name">{{ client.display_name }}</div>
+    <div class="client-meta">
+      Inflow: ${{ "{:,.0f}".format(client.monthly_salary) }}/mo &nbsp;·&nbsp;
+      Outflow: ${{ "{:,.0f}".format(client.monthly_expense_budget) }}/mo &nbsp;·&nbsp;
+      {% if client.last_report_date %}Last report: {{ client.last_report_date[:10] }}{% else %}No reports yet{% endif %}
+    </div>
+  </div>
+  <div class="client-actions">
+    <span class="badge badge-blue">{{ client.accounts|length }} accounts</span>
+    <span class="btn btn-green btn-sm" onclick="event.stopPropagation(); window.location='{{ url_for('reports.generate_report', client_id=client.id) }}'">Generate Report</span>
+    <span class="btn btn-outline btn-sm">View →</span>
+  </div>
+</a>
+{% endfor %}
+</div>
+{% endif %}
+{% endblock %}

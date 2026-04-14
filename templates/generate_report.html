@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block title %}Generate Report — {{ client.display_name }}{% endblock %}
+{% block content %}
+<div style="font-size:.85rem;color:var(--gray);margin-bottom:.5rem">
+  <a href="{{ url_for('clients.index') }}">← Clients</a> /
+  <a href="{{ url_for('clients.client_detail', client_id=client.id) }}">{{ client.display_name }}</a>
+</div>
+<h1>Generate Report</h1>
+<p class="subtitle">Review the figures below, update any balances, then generate both PDFs.</p>
+
+<!-- Live calc summary -->
+<div class="stat-grid" id="calc-tiles">
+  <div class="stat-tile blue"><div class="label">Monthly Inflow</div><div class="value" id="t-inflow">${{ "{:,.0f}".format(client.monthly_salary) }}</div></div>
+  <div class="stat-tile red"><div class="label">Monthly Outflow</div><div class="value" id="t-outflow">${{ "{:,.0f}".format(client.monthly_expense_budget) }}</div></div>
+  <div class="stat-tile green"><div class="label">Monthly Excess</div><div class="value" id="t-excess">${{ "{:,.0f}".format(client.excess_cashflow) }}</div></div>
+  <div class="stat-tile"><div class="label">Grand Total</div><div class="value" id="t-grand">${{ "{:,.0f}".format(client.grand_total) }}</div></div>
+  <div class="stat-tile red"><div class="label">Liabilities</div><div class="value" id="t-liab">${{ "{:,.2f}".format(client.liabilities_total) }}</div></div>
+  <div class="stat-tile"><div class="label">FICA Target</div><div class="value">${{ "{:,.0f}".format(client.private_reserve_calc_target) }}</div></div>
+</div>
+
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:1rem">
+
+<div>
+<!-- Account Balances Card -->
+<div class="card">
+  <div class="card-header"><h2 style="margin:0">Update Account Balances</h2></div>
+  <p class="subtitle" style="margin-bottom:1rem;font-size:.82rem">Enter current balances from Pinnacle Bank, Schwab, and Zillow. Fields marked with * had stale data last quarter.</p>
+
+  {% set ret1 = client.accounts|selectattr('is_retirement')|selectattr('owner','eq','client1')|list %}
+  {% set ret2 = client.accounts|selectattr('is_retirement')|selectattr('owner','eq','client2')|list %}
+  {% set non_ret = client.accounts|rejectattr('is_retirement')|list %}
+
+  {% if ret1 %}
+  <div class="section-label">Client 1 — Retirement <span class="badge badge-blue">${{ "{:,.0f}".format(client.retirement_total_1) }}</span></div>
+  {% for acct in ret1 %}{{ _render_balance_row(acct) }}{% endfor %}
+  {% endif %}
+
+  {% if ret2 %}
+  <div class="section-label mt-2">Client 2 — Retirement <span class="badge badge-blue">${{ "{:,.0f}".format(client.retirement_total_2) }}</span></div>
+  {% for acct in ret2 %}{{ _render_balance_row(acct) }}{% endfor %}
+  {% endif %}
+
+  {% if non_ret %}
+  <div class="section-label mt-2">Non-Retirement <span class="badge badge-green">${{ "{:,.0f}".format(client.non_retirement_total) }}</span></div>
+  {% for acct in non_ret %}{{ _render_balance_row(acct) }}{% endfor %}
+  {% endif %}
+
+  <div class="alert alert-warn mt-2" style="font-size:.8rem">
+    Any balance changes above will be saved when you click "Save &amp; Generate". Balances auto-carry forward from the last quarter.
+  </div>
+
+  <div style="margin-top:.75rem;display:flex;gap:.5rem;flex-wrap:wrap">
+    <button class="btn btn-blue" onclick="saveBalances()">💾 Save Balances</button>
+  </div>
+</div>
+</div>
+
+<!-- Right column: report options -->
+<div>
+<div class="card">
+  <h2>Report Details</h2>
+  <form method="post" action="{{ url_for('reports.generate_report', client_id=client.id) }}" id="report-form">
+    <div class="form-group">
+      <label>Report Date</label>
+      <input name="report_date" value="{{ now_date }}" placeholder="July 26, 2025">
+    </div>
+    <div class="form-group">
+      <label>Quarter Label</label>
+      <input name="quarter" value="{{ now_quarter }}" placeholder="Q3 2025">
+    </div>
+    <div class="alert alert-info" style="margin:1rem 0;font-size:.82rem">
+      Generates both SACS (cashflow) and TCC (net worth) PDFs, formatted to match your existing templates.
+    </div>
+    <button type="submit" class="btn btn-green" style="width:100%;justify-content:center">
+      📄 Generate Both PDFs
+    </button>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Calculation Preview</h2>
+  <table>
+    <tbody>
+      <tr><td>Inflow – Outflow</td><td class="text-right" style="font-weight:600;color:var(--green)">${{ "{:,.0f}".format(client.excess_cashflow) }}/mo</td></tr>
+      <tr><td>6× Expenses</td><td class="text-right">${{ "{:,.0f}".format(client.monthly_expense_budget * 6) }}</td></tr>
+      <tr><td>+ Deductibles</td><td class="text-right">+${{ "{:,.0f}".format(client.deductibles_total) }}</td></tr>
+      <tr><td><b>FICA Target</b></td><td class="text-right"><b>${{ "{:,.0f}".format(client.private_reserve_calc_target) }}</b></td></tr>
+    </tbody>
+  </table>
+  <div style="border-top:1px solid #E8EEF4;margin-top:.5rem;padding-top:.5rem">
+    <table>
+      <tr><td>Client 1 Retirement</td><td class="text-right">${{ "{:,.2f}".format(client.retirement_total_1) }}</td></tr>
+      <tr><td>Client 2 Retirement</td><td class="text-right">${{ "{:,.2f}".format(client.retirement_total_2) }}</td></tr>
+      <tr><td>Non-Retirement</td><td class="text-right">${{ "{:,.2f}".format(client.non_retirement_total) }}</td></tr>
+      <tr><td>Trust / Home</td><td class="text-right">${{ "{:,.2f}".format(client.trust_total) }}</td></tr>
+      <tr style="font-weight:700"><td>Grand Total</td><td class="text-right">${{ "{:,.2f}".format(client.grand_total) }}</td></tr>
+    </table>
+  </div>
+  <div class="alert alert-warn" style="margin-top:.75rem;font-size:.8rem">
+    Liabilities (${{ "{:,.2f}".format(client.liabilities_total) }}) are shown separately and NOT subtracted from net worth.
+  </div>
+</div>
+</div>
+
+</div>
+{% endblock %}
+
+{% macro _render_balance_row(acct) %}
+<div style="display:flex;align-items:center;gap:.75rem;padding:.5rem .25rem;border-bottom:1px solid #E8EEF4">
+  <div style="flex:1;min-width:0">
+    <div style="font-size:.875rem;font-weight:600;color:var(--navy)">
+      {{ acct.account_type }}{% if acct.institution %} <span style="color:var(--gray);font-weight:400">· {{ acct.institution }}</span>{% endif %}
+    </div>
+    <div style="font-size:.75rem;color:var(--gray)">
+      {% if acct.acct_last4 %}#{{ acct.acct_last4 }}{% endif %}
+      {% if acct.stale_data %}<span style="color:var(--amber)"> ★ Stale</span>{% endif %}
+    </div>
+  </div>
+  <form method="post" action="{{ url_for('clients.update_account', client_id=acct.client_id, acct_id=acct.id) }}" style="display:flex;gap:.4rem;align-items:center">
+    <input type="number" step="0.01" name="current_balance" value="{{ acct.current_balance or 0 }}"
+      style="width:130px;font-size:.875rem;padding:.35rem .5rem" onchange="refreshCalc()">
+    <button type="submit" class="btn btn-primary btn-sm">✓</button>
+  </form>
+</div>
+{% endmacro %}
+
+{% block head %}
+<script>
+const CLIENT_ID = {{ client.id }};
+function fmt(n){return '$'+n.toLocaleString('en-US',{maximumFractionDigits:0});}
+function refreshCalc(){
+  fetch(`/api/clients/${CLIENT_ID}/summary`)
+    .then(r=>r.json())
+    .then(d=>{
+      document.getElementById('t-inflow').textContent = fmt(d.monthly_salary);
+      document.getElementById('t-outflow').textContent = fmt(d.monthly_expense_budget);
+      document.getElementById('t-excess').textContent = fmt(d.excess_cashflow);
+      document.getElementById('t-grand').textContent = fmt(d.grand_total);
+      document.getElementById('t-liab').textContent = '$'+d.liabilities_total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+    });
+}
+function saveBalances(){
+  const forms = document.querySelectorAll('form[action*="accounts"]');
+  let p = Promise.resolve();
+  forms.forEach(f=>{
+    p = p.then(()=>fetch(f.action,{method:'POST',body:new FormData(f)}));
+  });
+  p.then(()=>{ refreshCalc(); alert('Balances saved!'); });
+}
+// Set default date/quarter
+window.addEventListener('DOMContentLoaded',()=>{
+  const d=new Date();
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const q=Math.floor(d.getMonth()/3)+1;
+  const dateStr=`${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+  const qStr=`Q${q} ${d.getFullYear()}`;
+  if(!document.querySelector('[name=report_date]').value)
+    document.querySelector('[name=report_date]').value=dateStr;
+  if(!document.querySelector('[name=quarter]').value)
+    document.querySelector('[name=quarter]').value=qStr;
+});
+</script>
+{% endblock %}

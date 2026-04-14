@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+{% block title %}{{ client.display_name }} — EF Portal{% endblock %}
+{% block content %}
+<div class="flex-between mb-2">
+  <div>
+    <div style="font-size:.85rem;color:var(--gray);margin-bottom:.2rem"><a href="{{ url_for('clients.index') }}">← Clients</a></div>
+    <h1>{{ client.display_name }}</h1>
+    <p class="subtitle">Client profile · Last updated {{ client.updated_at[:10] if client.updated_at else '' }}</p>
+  </div>
+  <div class="flex">
+    <a href="{{ url_for('clients.edit_client', client_id=client.id) }}" class="btn btn-outline btn-sm">Edit Profile</a>
+    <a href="{{ url_for('reports.generate_report', client_id=client.id) }}" class="btn btn-green">📄 Generate Report</a>
+  </div>
+</div>
+
+<!-- SUMMARY TILES -->
+<div class="stat-grid" id="stat-tiles">
+  <div class="stat-tile blue">
+    <div class="label">Monthly Inflow</div>
+    <div class="value">${{ "{:,.0f}".format(client.monthly_salary) }}</div>
+  </div>
+  <div class="stat-tile red">
+    <div class="label">Monthly Outflow</div>
+    <div class="value">${{ "{:,.0f}".format(client.monthly_expense_budget) }}</div>
+  </div>
+  <div class="stat-tile green">
+    <div class="label">Monthly Excess</div>
+    <div class="value">${{ "{:,.0f}".format(client.excess_cashflow) }}</div>
+  </div>
+  <div class="stat-tile">
+    <div class="label">Net Worth</div>
+    <div class="value">${{ "{:,.0f}".format(client.grand_total) }}</div>
+  </div>
+  <div class="stat-tile red">
+    <div class="label">Total Liabilities</div>
+    <div class="value">${{ "{:,.0f}".format(client.liabilities_total) }}</div>
+  </div>
+  <div class="stat-tile">
+    <div class="label">FICA Target</div>
+    <div class="value">${{ "{:,.0f}".format(client.private_reserve_calc_target) }}</div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+
+<!-- LEFT: Profile info -->
+<div>
+<div class="card">
+  <div class="card-header">
+    <h2 style="margin:0">Client Info</h2>
+    <a href="{{ url_for('clients.edit_client', client_id=client.id) }}" class="btn btn-outline btn-sm">Edit</a>
+  </div>
+
+  <div class="section-label">Client 1</div>
+  <div class="form-row cols-2">
+    <div><label>Name</label><div style="font-weight:600">{{ client.name_1 or '—' }}</div></div>
+    <div><label>DOB</label><div>{{ client.dob_1 or '—' }}{% if client.age_1 %} <span class="badge badge-gray">Age {{ client.age_1 }}</span>{% endif %}</div></div>
+    <div><label>SSN Last 4</label><div class="mono">***-**-{{ client.ssn_last4_1 or '—' }}</div></div>
+  </div>
+
+  {% if client.name_2 %}
+  <div class="section-label mt-2">Client 2</div>
+  <div class="form-row cols-2">
+    <div><label>Name</label><div style="font-weight:600">{{ client.name_2 }}</div></div>
+    <div><label>DOB</label><div>{{ client.dob_2 or '—' }}{% if client.age_2 %} <span class="badge badge-gray">Age {{ client.age_2 }}</span>{% endif %}</div></div>
+    <div><label>SSN Last 4</label><div class="mono">***-**-{{ client.ssn_last4_2 or '—' }}</div></div>
+  </div>
+  {% endif %}
+
+  <div class="section-label mt-2">Cashflow Settings</div>
+  <div class="form-row cols-2">
+    <div><label>Monthly Salary (after tax)</label><div style="font-weight:600">${{ "{:,.0f}".format(client.monthly_salary) }}</div></div>
+    <div><label>Agreed Expense Budget</label><div style="font-weight:600">${{ "{:,.0f}".format(client.monthly_expense_budget) }}</div></div>
+    <div><label>Insurance Deductibles</label><div>${{ "{:,.0f}".format(client.deductibles_total) }}</div></div>
+    <div><label>Account Floor</label><div>${{ "{:,.0f}".format(client.floor_amount) }}</div></div>
+    <div><label>Trust Address</label><div>{{ client.trust_address or '—' }}</div></div>
+    <div><label>Zillow Value</label><div>${{ "{:,.0f}".format(client.zillow_value) }}</div></div>
+  </div>
+</div>
+
+<!-- Past Reports -->
+{% if client.reports %}
+<div class="card">
+  <div class="card-header"><h2 style="margin:0">Report History</h2></div>
+  <table>
+    <thead><tr><th>Quarter</th><th>Date</th><th>Downloads</th></tr></thead>
+    <tbody>
+    {% for r in client.reports|sort(attribute='created_at', reverse=True) %}
+    <tr>
+      <td>{{ r.quarter }}</td>
+      <td>{{ r.report_date }}</td>
+      <td class="flex">
+        <a href="{{ url_for('reports.download_report', report_id=r.id, rtype='sacs') }}" class="btn btn-outline btn-sm">SACS</a>
+        <a href="{{ url_for('reports.download_report', report_id=r.id, rtype='tcc') }}" class="btn btn-outline btn-sm">TCC</a>
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+</div>
+
+<!-- RIGHT: Accounts -->
+<div>
+<div class="card">
+  <div class="card-header">
+    <h2 style="margin:0">Accounts</h2>
+    <button class="btn btn-outline btn-sm" onclick="document.getElementById('add-acct-form').style.display='block';this.style.display='none'">+ Add Account</button>
+  </div>
+
+  <!-- Add Account Form (hidden) -->
+  <div id="add-acct-form" style="display:none;background:var(--pale2);border-radius:8px;padding:1rem;margin-bottom:1rem">
+    <h3 class="mb-1">Add Account</h3>
+    <form method="post" action="{{ url_for('clients.add_account', client_id=client.id) }}">
+      <div class="form-row cols-2">
+        <div><label>Owner</label>
+          <select name="owner">
+            <option value="client1">Client 1</option>
+            <option value="client2">Client 2</option>
+            <option value="joint">Joint</option>
+          </select>
+        </div>
+        <div><label>Account Type</label><input name="account_type" placeholder="e.g. Roth IRA, 401K"></div>
+        <div><label>Institution</label><input name="institution" placeholder="e.g. Schwab, Pinnacle"></div>
+        <div><label>Acct # Last 4</label><input name="acct_last4" maxlength="4" placeholder="1234"></div>
+        <div><label>Current Balance</label><input name="current_balance" type="number" step="0.01" placeholder="0.00"></div>
+        <div><label>Cash Balance (optional)</label><input name="cash_balance" type="number" step="0.01" placeholder=""></div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.75rem">
+        {% for flag, lbl in [('is_retirement','Retirement'),('is_trust','Trust'),('is_fica','FICA'),('is_private_reserve','Private Reserve'),('is_investment','Investment'),('is_inflow','Inflow'),('is_outflow','Outflow')] %}
+        <label style="display:flex;align-items:center;gap:.3rem;font-size:.8rem;cursor:pointer">
+          <input type="checkbox" name="{{ flag }}" style="width:auto"> {{ lbl }}
+        </label>
+        {% endfor %}
+      </div>
+      <div class="flex">
+        <button type="submit" class="btn btn-primary btn-sm">Save Account</button>
+        <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('add-acct-form').style.display='none';document.querySelector('[onclick*=add-acct-form]').style.display='inline-flex'">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- RETIREMENT accounts -->
+  {% set ret1 = client.accounts|selectattr('is_retirement')|selectattr('owner','eq','client1')|list %}
+  {% set ret2 = client.accounts|selectattr('is_retirement')|selectattr('owner','eq','client2')|list %}
+  {% set non_ret = client.accounts|rejectattr('is_retirement')|list %}
+
+  {% if ret1 %}
+  <div class="section-label">Client 1 Retirement <span class="badge badge-blue">${{ "{:,.0f}".format(client.retirement_total_1) }}</span></div>
+  {% for acct in ret1 %}{{ _render_account_row(acct, client.id) }}{% endfor %}
+  {% endif %}
+
+  {% if ret2 %}
+  <div class="section-label mt-2">Client 2 Retirement <span class="badge badge-blue">${{ "{:,.0f}".format(client.retirement_total_2) }}</span></div>
+  {% for acct in ret2 %}{{ _render_account_row(acct, client.id) }}{% endfor %}
+  {% endif %}
+
+  {% if non_ret %}
+  <div class="section-label mt-2">Non-Retirement <span class="badge badge-green">${{ "{:,.0f}".format(client.non_retirement_total) }}</span></div>
+  {% for acct in non_ret %}{{ _render_account_row(acct, client.id) }}{% endfor %}
+  {% endif %}
+</div>
+
+<!-- Liabilities -->
+<div class="card">
+  <div class="card-header">
+    <h2 style="margin:0">Liabilities</h2>
+    <span class="badge badge-red">${{ "{:,.2f}".format(client.liabilities_total) }}</span>
+  </div>
+  <form method="post" action="{{ url_for('clients.add_liability', client_id=client.id) }}" style="background:var(--pale2);border-radius:8px;padding:.75rem;margin-bottom:.75rem">
+    <div class="form-row cols-3" style="margin-bottom:.5rem">
+      <div><input name="name" placeholder="Name (e.g. P Morg)"></div>
+      <div><input name="balance" type="number" step="0.01" placeholder="Balance"></div>
+      <div><input name="interest_rate" type="number" step="0.1" placeholder="Rate % (opt)"></div>
+    </div>
+    <button type="submit" class="btn btn-outline btn-sm">+ Add Liability</button>
+  </form>
+  {% if client.liabilities %}
+  <table>
+    <thead><tr><th>Name</th><th>Rate</th><th class="text-right">Balance</th><th></th></tr></thead>
+    <tbody>
+    {% for l in client.liabilities %}
+    <tr>
+      <td>{{ l.name }}</td>
+      <td>{{ "%.1f%%"|format(l.interest_rate) if l.interest_rate else '—' }}</td>
+      <td class="text-right" style="color:var(--red);font-weight:600">${{ "{:,.2f}".format(l.balance) }}</td>
+      <td>
+        <form method="post" action="{{ url_for('clients.add_liability', client_id=client.id) }}" style="display:inline">
+          <input type="hidden" name="_action" value="delete">
+          <input type="hidden" name="liability_id" value="{{ l.id }}">
+          <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this liability?')">×</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="color:var(--gray);font-size:.875rem">No liabilities added.</p>
+  {% endif %}
+</div>
+</div>
+
+</div>
+{% endblock %}
+
+{% macro _render_account_row(acct, client_id) %}
+<div style="background:var(--gray-pale);border-radius:8px;padding:.6rem .85rem;margin-bottom:.4rem;display:flex;align-items:center;gap:.75rem">
+  <div style="flex:1;min-width:0">
+    <div style="font-weight:600;font-size:.875rem;color:var(--navy)">
+      {{ acct.account_type }}{% if acct.institution %} <span style="color:var(--gray);font-weight:400">· {{ acct.institution }}</span>{% endif %}
+      {% if acct.stale_data %}<span class="badge badge-amber" title="Stale data">*</span>{% endif %}
+    </div>
+    <div style="font-size:.78rem;color:var(--gray)">
+      {% if acct.acct_last4 %}#{{ acct.acct_last4 }}{% endif %}
+      {% if acct.is_inflow %}<span class="badge badge-green" style="font-size:.7rem">Inflow</span>{% endif %}
+      {% if acct.is_outflow %}<span class="badge badge-red" style="font-size:.7rem">Outflow</span>{% endif %}
+      {% if acct.is_private_reserve %}<span class="badge badge-blue" style="font-size:.7rem">Priv. Reserve</span>{% endif %}
+      {% if acct.is_fica %}<span class="badge badge-blue" style="font-size:.7rem">FICA</span>{% endif %}
+      {% if acct.is_trust %}<span class="badge badge-gray" style="font-size:.7rem">Trust</span>{% endif %}
+    </div>
+  </div>
+  <form method="post" action="{{ url_for('clients.update_account', client_id=client_id, acct_id=acct.id) }}" style="display:flex;align-items:center;gap:.4rem">
+    <div>
+      <input name="current_balance" type="number" step="0.01" value="{{ acct.current_balance or 0 }}" style="width:120px;font-size:.85rem;padding:.3rem .5rem">
+    </div>
+    {% if acct.cash_balance is not none %}
+    <div>
+      <input name="cash_balance" type="number" step="0.01" value="{{ acct.cash_balance }}" placeholder="Cash" style="width:80px;font-size:.85rem;padding:.3rem .5rem">
+    </div>
+    {% endif %}
+    <button type="submit" class="btn btn-primary btn-sm">✓</button>
+    <button type="submit" name="_action" value="delete" class="btn btn-danger btn-sm" onclick="return confirm('Delete this account?')">×</button>
+  </form>
+</div>
+{% endmacro %}

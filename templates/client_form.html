@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}{% if client %}Edit {{ client.display_name }}{% else %}New Client{% endif %} — EF Portal{% endblock %}
+{% block content %}
+<div class="flex-between mb-2">
+  <div>
+    <div style="font-size:.85rem;color:var(--gray);margin-bottom:.2rem">
+      <a href="{{ url_for('clients.index') }}">← Clients</a>
+      {% if client %} / <a href="{{ url_for('clients.client_detail', client_id=client.id) }}">{{ client.display_name }}</a>{% endif %}
+    </div>
+    <h1>{% if client %}Edit Client Profile{% else %}New Client{% endif %}</h1>
+    <p class="subtitle">Static information entered once. Update when client circumstances change.</p>
+  </div>
+</div>
+
+<form method="post" action="">
+<div class="card">
+  <h2>Client 1</h2>
+  <div class="form-row cols-4">
+    <div class="form-group"><label>First Name</label><input name="name_1" value="{{ client.name_1 if client else '' }}" required placeholder="John"></div>
+    <div class="form-group"><label>Date of Birth</label><input type="date" name="dob_1" value="{{ client.dob_1 if client else '' }}"></div>
+    <div class="form-group"><label>SSN Last 4</label><input name="ssn_last4_1" maxlength="4" value="{{ client.ssn_last4_1 if client else '' }}" placeholder="4521"></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Client 2 <span style="font-weight:400;color:var(--gray);font-size:.9rem">(optional)</span></h2>
+  <div class="form-row cols-4">
+    <div class="form-group"><label>First Name</label><input name="name_2" value="{{ client.name_2 if client else '' }}" placeholder="Jane"></div>
+    <div class="form-group"><label>Date of Birth</label><input type="date" name="dob_2" value="{{ client.dob_2 if client else '' }}"></div>
+    <div class="form-group"><label>SSN Last 4</label><input name="ssn_last4_2" maxlength="4" value="{{ client.ssn_last4_2 if client else '' }}" placeholder="8834"></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Cashflow Settings</h2>
+  <div class="alert alert-info mb-2">These numbers drive the SACS report calculations. Outflow is the agreed monthly expense budget — typically rounded up from actual expenses to create a buffer.</div>
+  <div class="form-row cols-3">
+    <div class="form-group">
+      <label>Monthly Salary (after tax)</label>
+      <input type="number" step="1" name="monthly_salary" value="{{ client.monthly_salary if client else '' }}" placeholder="15000" required>
+    </div>
+    <div class="form-group">
+      <label>Agreed Monthly Expense Budget</label>
+      <input type="number" step="1" name="monthly_expense_budget" value="{{ client.monthly_expense_budget if client else '' }}" placeholder="12000" required>
+    </div>
+    <div class="form-group">
+      <label>Total Insurance Deductibles</label>
+      <input type="number" step="1" name="deductibles_total" value="{{ client.deductibles_total if client else '' }}" placeholder="3000">
+    </div>
+    <div class="form-group">
+      <label>Account Floor (min balance)</label>
+      <input type="number" step="1" name="floor_amount" value="{{ client.floor_amount if client else 1000 }}" placeholder="1000">
+    </div>
+    <div class="form-group">
+      <label>Trust / Home Address (Zillow)</label>
+      <input name="trust_address" value="{{ client.trust_address if client else '' }}" placeholder="123 Main St, Atlanta GA">
+    </div>
+    <div class="form-group">
+      <label>Zillow Home Value</label>
+      <input type="number" step="1" name="zillow_value" value="{{ client.zillow_value if client else '' }}" placeholder="450000">
+    </div>
+  </div>
+</div>
+
+<div class="flex" style="gap:.75rem">
+  <button type="submit" class="btn btn-primary">{% if client %}Save Changes{% else %}Create Client{% endif %}</button>
+  {% if client %}
+  <a href="{{ url_for('clients.client_detail', client_id=client.id) }}" class="btn btn-outline">Cancel</a>
+  {% else %}
+  <a href="{{ url_for('clients.index') }}" class="btn btn-outline">Cancel</a>
+  {% endif %}
+</div>
+</form>
+{% endblock %}

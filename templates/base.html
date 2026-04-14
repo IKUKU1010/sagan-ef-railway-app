@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}EF Portal{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1B3A5C;--navy-dark:#0F2540;--blue:#2C5F8A;--blue-light:#4A90C4;
+  --pale:#D6E8F5;--pale2:#EBF4FA;
+  --green:#4A8C3F;--green-light:#6AAF5A;
+  --red:#C0392B;--amber:#E67E22;
+  --gray:#666;--gray-light:#CCC;--gray-pale:#F5F5F5;
+  --white:#FFF;
+  --radius:10px;--shadow:0 2px 12px rgba(0,0,0,.08);
+  --font:'Inter',sans-serif;
+}
+body{font-family:var(--font);background:#F0F4F8;color:#222;min-height:100vh}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* NAV */
+nav{background:var(--navy);padding:0 2rem;display:flex;align-items:center;height:56px;gap:2rem;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+nav .brand{color:var(--white);font-weight:700;font-size:1.1rem;letter-spacing:-.02em;white-space:nowrap}
+nav .brand span{color:var(--blue-light);font-weight:300}
+nav a.nav-link{color:rgba(255,255,255,.75);font-size:.9rem;font-weight:500;transition:color .15s}
+nav a.nav-link:hover{color:#fff;text-decoration:none}
+
+/* MAIN */
+main{max-width:1100px;margin:0 auto;padding:2rem 1.5rem}
+h1{font-size:1.6rem;font-weight:700;color:var(--navy);margin-bottom:.25rem}
+h2{font-size:1.2rem;font-weight:600;color:var(--navy);margin-bottom:.75rem}
+h3{font-size:1rem;font-weight:600;color:var(--navy)}
+.subtitle{color:var(--gray);font-size:.9rem;margin-bottom:1.5rem}
+
+/* CARDS */
+.card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:1.5rem;margin-bottom:1rem}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;padding-bottom:.75rem;border-bottom:1px solid #E8EEF4}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1.1rem;border-radius:7px;font-size:.875rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;white-space:nowrap}
+.btn-primary{background:var(--navy);color:#fff}.btn-primary:hover{background:var(--navy-dark);text-decoration:none;color:#fff}
+.btn-blue{background:var(--blue);color:#fff}.btn-blue:hover{background:var(--navy);text-decoration:none;color:#fff}
+.btn-green{background:var(--green);color:#fff}.btn-green:hover{background:#2D5A27;text-decoration:none;color:#fff}
+.btn-outline{background:transparent;color:var(--navy);border:1.5px solid var(--navy)}.btn-outline:hover{background:var(--pale);text-decoration:none}
+.btn-sm{padding:.3rem .75rem;font-size:.8rem}
+.btn-danger{background:var(--red);color:#fff}.btn-danger:hover{background:#96281B;text-decoration:none;color:#fff}
+.btn-amber{background:var(--amber);color:#fff}.btn-amber:hover{opacity:.9;text-decoration:none;color:#fff}
+
+/* FORMS */
+label{font-size:.85rem;font-weight:500;color:#444;display:block;margin-bottom:.3rem}
+input,select,textarea{width:100%;padding:.5rem .75rem;border:1.5px solid #D1D9E0;border-radius:7px;font-size:.9rem;font-family:var(--font);transition:border-color .15s;background:#fff}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue-light)}
+.form-row{display:grid;gap:1rem;margin-bottom:1rem}
+.form-row.cols-2{grid-template-columns:1fr 1fr}
+.form-row.cols-3{grid-template-columns:1fr 1fr 1fr}
+.form-row.cols-4{grid-template-columns:1fr 1fr 1fr 1fr}
+.form-group{margin-bottom:.9rem}
+
+/* TABLES */
+table{width:100%;border-collapse:collapse;font-size:.875rem}
+th{text-align:left;padding:.6rem .75rem;background:var(--pale2);color:var(--navy);font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.04em}
+td{padding:.6rem .75rem;border-bottom:1px solid #E8EEF4;color:#333}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#FAFCFF}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:.2rem .55rem;border-radius:20px;font-size:.75rem;font-weight:600}
+.badge-blue{background:var(--pale);color:var(--navy)}
+.badge-green{background:#EAF5E8;color:#2D5A27}
+.badge-gray{background:#E8EAED;color:#555}
+.badge-red{background:#FDECEB;color:var(--red)}
+.badge-amber{background:#FEF3E2;color:#7D4A0A}
+
+/* STAT TILES */
+.stat-grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-bottom:1.5rem}
+.stat-tile{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:1rem 1.25rem}
+.stat-tile .label{font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--gray);margin-bottom:.3rem}
+.stat-tile .value{font-size:1.35rem;font-weight:700;color:var(--navy)}
+.stat-tile.green .value{color:var(--green)}
+.stat-tile.red .value{color:var(--red)}
+.stat-tile.blue .value{color:var(--blue)}
+
+/* CLIENT LIST */
+.client-card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:1.25rem 1.5rem;display:flex;align-items:center;gap:1.25rem;transition:box-shadow .15s;cursor:pointer}
+.client-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.12);text-decoration:none}
+.client-avatar{width:50px;height:50px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:1.1rem;flex-shrink:0}
+.client-info{flex:1}
+.client-name{font-weight:700;font-size:1rem;color:var(--navy);margin-bottom:.15rem}
+.client-meta{font-size:.8rem;color:var(--gray)}
+.client-actions{display:flex;gap:.5rem}
+
+/* SECTION DIVIDER */
+.section-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--gray);margin:.5rem 0 .75rem;padding-bottom:.3rem;border-bottom:2px solid var(--pale)}
+
+/* ALERTS */
+.alert{padding:.85rem 1rem;border-radius:8px;font-size:.875rem;margin-bottom:1rem}
+.alert-info{background:var(--pale2);color:var(--navy);border-left:3px solid var(--blue)}
+.alert-success{background:#EAF5E8;color:#1E4A18;border-left:3px solid var(--green)}
+.alert-warn{background:#FEF3E2;color:#7D4A0A;border-left:3px solid var(--amber)}
+
+/* MISC */
+.text-right{text-align:right}
+.text-center{text-align:center}
+.mono{font-family:monospace}
+.flex{display:flex;align-items:center;gap:.75rem}
+.flex-between{display:flex;align-items:center;justify-content:space-between}
+.mt-1{margin-top:.5rem}.mt-2{margin-top:1rem}.mt-3{margin-top:1.5rem}
+.mb-1{margin-bottom:.5rem}.mb-2{margin-bottom:1rem}
+.stale{color:var(--amber)} .stale::after{content:" *"}
+</style>
+{% block head %}{% endblock %}
+</head>
+<body>
+<nav>
+  <span class="brand">Windbrook <span>Portal</span></span>
+  <a href="{{ url_for('clients.index') }}" class="nav-link">Clients</a>
+</nav>
+<main>
+{% block content %}{% endblock %}
+</main>
+</body>
+</html>

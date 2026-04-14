@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Report Ready — {{ client.display_name }}{% endblock %}
+{% block content %}
+<div style="font-size:.85rem;color:var(--gray);margin-bottom:.5rem">
+  <a href="{{ url_for('clients.index') }}">← Clients</a> /
+  <a href="{{ url_for('clients.client_detail', client_id=client.id) }}">{{ client.display_name }}</a>
+</div>
+
+<div class="card text-center" style="padding:2.5rem;max-width:560px;margin:2rem auto">
+  <div style="font-size:3rem;margin-bottom:.5rem">✅</div>
+  <h1 style="margin-bottom:.25rem">Reports Ready</h1>
+  <p class="subtitle">{{ report.quarter }} · {{ report.report_date }}</p>
+
+  <div style="display:grid;gap:.75rem;margin:1.75rem 0">
+    <div style="display:grid;grid-template-columns:1fr auto;gap:.5rem;align-items:center">
+      <a href="{{ url_for('reports.view_report', report_id=report.id, rtype='sacs') }}"
+         target="_blank" class="btn btn-blue" style="justify-content:center;padding:.75rem;font-size:1rem">
+        👁 View SACS (Cashflow PDF)
+      </a>
+      <a href="{{ url_for('reports.download_report', report_id=report.id, rtype='sacs') }}"
+         class="btn btn-outline" style="padding:.75rem;font-size:1rem" title="Download SACS PDF">
+        ⬇
+      </a>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr auto;gap:.5rem;align-items:center">
+      <a href="{{ url_for('reports.view_report', report_id=report.id, rtype='tcc') }}"
+         target="_blank" class="btn btn-primary" style="justify-content:center;padding:.75rem;font-size:1rem">
+        👁 View TCC (Net Worth PDF)
+      </a>
+      <a href="{{ url_for('reports.download_report', report_id=report.id, rtype='tcc') }}"
+         class="btn btn-outline" style="padding:.75rem;font-size:1rem" title="Download TCC PDF">
+        ⬇
+      </a>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:.75rem;justify-content:center">
+    <a href="{{ url_for('reports.generate_report', client_id=client.id) }}" class="btn btn-outline">Regenerate</a>
+    <a href="{{ url_for('clients.client_detail', client_id=client.id) }}" class="btn btn-outline">Back to Client</a>
+    <a href="{{ url_for('clients.index') }}" class="btn btn-outline">All Clients</a>
+  </div>
+</div>
+{% endblock %}
