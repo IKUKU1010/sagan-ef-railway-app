@@ -145,7 +145,7 @@ ef-portal/
 └── reports/                        ← Auto-created. Contains generated PDFs
 ```
 
-## 6. Deploying to Railway
+## 5. Deploying to Railway
 
 ### Step 1 — Push code to GitHub
 
@@ -238,7 +238,7 @@ The app is now live. Open it in your browser — the database and sample data ar
 
 ---
 
-## 7. Persistent Storage on Railway
+## 6. Persistent Storage on Railway
 
 **Why this matters:** Railway containers are ephemeral — when you redeploy, any files written inside the container are lost unless they are on a mounted volume.
 
@@ -257,7 +257,7 @@ Once volumes are attached, all data persists across deployments, restarts, and R
 
 ---
 
-## 8. Updating the App
+## 7. Updating the App
 
 After making code changes locally:
 
@@ -275,7 +275,7 @@ Railway watches your GitHub repository and **auto-deploys** on every push to `ma
 
 ---
 
-## 9. Troubleshooting
+## 8. Troubleshooting
 
 ### App won't start locally
 
